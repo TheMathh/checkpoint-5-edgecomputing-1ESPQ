@@ -1,6 +1,8 @@
 # CP5 — Vinheria Agnello: ESP32 + MQTT
 
-Projeto desenvolvido para a disciplina **Edge Computing & Computer Systems**, da FIAP. O objetivo é conectar o projeto da Vinheria Agnello ao servidor IoT utilizando um ESP32, sensores ambientais e o protocolo MQTT.
+Projeto desenvolvido para a disciplina **Edge Computing & Computer Systems**, da FIAP. O objetivo é conectar um ESP32 a um servidor IoT utilizando sensores ambientais e o protocolo MQTT.
+
+O sistema realiza a leitura de temperatura, umidade e luminosidade, publica os dados no servidor e permite controlar o LED integrado à placa por meio de comandos MQTT.
 
 ## Integrantes
 
@@ -12,18 +14,18 @@ Projeto desenvolvido para a disciplina **Edge Computing & Computer Systems**, da
 
 ## Objetivo do projeto
 
-Desenvolver um sistema de monitoramento ambiental para a Vinheria Agnello, utilizando sensores conectados ao ESP32 para coletar dados de temperatura, umidade e luminosidade.
+Desenvolver um sistema de monitoramento ambiental para a Vinheria Agnello utilizando um ESP32.
 
-Os dados são enviados ao servidor IoT por meio do protocolo MQTT. O sistema também permite o envio de comandos remotos pelo aplicativo MyMQTT para controlar o LED integrado à placa ESP32.
+O dispositivo coleta dados dos sensores e os envia ao servidor IoT por MQTT. Também recebe comandos remotos para ligar e desligar o LED integrado à placa.
 
 ## Componentes utilizados
 
 | Componente | Função |
 |---|---|
-| ESP32 | Processamento dos dados e comunicação Wi-Fi/MQTT |
+| ESP32 | Processamento e comunicação Wi-Fi/MQTT |
 | DHT11 | Leitura de temperatura e umidade |
 | LDR | Leitura de luminosidade |
-| LED integrado | Controle remoto por comandos MQTT |
+| LED integrado | Controle remoto por MQTT |
 | Protoboard e jumpers | Conexão dos componentes |
 
 ## Tecnologias utilizadas
@@ -34,23 +36,23 @@ Os dados são enviados ao servidor IoT por meio do protocolo MQTT. O sistema tam
 - Biblioteca PubSubClient.
 - Biblioteca DHT Sensor Library, da Adafruit.
 - Aplicativo MyMQTT.
-- Servidor IoT FIWARE.
+- Servidor IoT compatível com a configuração MQTT utilizada.
 
 ## Requisitos
 
 - Placa ESP32 compatível com o código.
 - Sensor DHT11.
 - Sensor LDR com circuito divisor de tensão.
-- Cabo USB para programação da placa.
-- Arduino IDE com o suporte de placas ESP32 instalado.
+- Cabo USB para programação.
+- Arduino IDE com suporte à placa ESP32.
 - Bibliotecas `PubSubClient` e `DHT sensor library`.
-- Acesso à rede Wi-Fi configurada no código.
-- Broker MQTT disponível no servidor IoT.
-- Aplicativo MyMQTT instalado em um dispositivo conectado à rede.
+- Rede Wi-Fi disponível.
+- Servidor MQTT acessível.
+- Aplicativo MyMQTT ou outro cliente MQTT.
 
 ## Montagem dos componentes
 
-As conexões definidas no código são:
+As conexões utilizadas no código são:
 
 | Componente | Pino do ESP32 |
 |---|---|
@@ -58,183 +60,189 @@ As conexões definidas no código são:
 | LDR — saída analógica | GPIO 34 |
 | LED integrado | GPIO 2 |
 
-O DHT11 deve ser conectado à alimentação, ao GND e ao GPIO 4. O LDR deve ser conectado a um circuito divisor de tensão, com a saída analógica ligada ao GPIO 34.
+O DHT11 deve ser conectado à alimentação, ao GND e ao GPIO 4. O LDR deve utilizar um circuito divisor de tensão, com a saída analógica conectada ao GPIO 34.
 
-**Observação:** confira a pinagem e a alimentação dos componentes de acordo com o kit utilizado.
+**Observação:** confira a pinagem e a alimentação dos componentes de acordo com o modelo da placa e o kit utilizado.
 
-## Configuração do código
+## Configuração do ambiente
 
-Antes de enviar o código para o ESP32, confira as configurações de Wi-Fi e MQTT:
+Antes de executar o projeto, abra o código-fonte e configure os parâmetros de acordo com sua própria rede e seu servidor MQTT.
 
-| Variável | Descrição |
+| Variável | O que configurar |
 |---|---|
 | `WIFI_SSID` | Nome da rede Wi-Fi |
 | `WIFI_SENHA` | Senha da rede Wi-Fi |
-| `BROKER_IP` | Endereço IP do servidor MQTT |
-| `BROKER_PORTA` | Porta do broker MQTT: `1883` |
-| `API_KEY` | Identificação da API: `TEF` |
-| `DEVICE_ID` | Identificação do dispositivo: `vinheria571424` |
+| `BROKER_IP` | Endereço IP ou hostname do broker MQTT |
+| `BROKER_PORTA` | Porta utilizada pelo broker |
+| `API_KEY` | Identificador ou chave exigida pelo servidor |
+| `DEVICE_ID` | Identificador do dispositivo cadastrado no servidor |
 
-As configurações precisam corresponder ao ambiente disponibilizado para a atividade.
+Os valores presentes no código são exemplos e devem ser substituídos pelos dados do ambiente utilizado.
+
+A porta `1883` está definida como padrão para conexões MQTT sem TLS. Utilize a porta exigida pelo servidor configurado.
+
+**Importante:** não publique senhas reais, chaves de acesso ou outras informações sensíveis no repositório. Em projetos maiores, prefira manter as configurações privadas fora do código versionado.
 
 ### Bibliotecas necessárias
 
-No Arduino IDE, acesse o Gerenciador de Bibliotecas e instale:
+No Gerenciador de Bibliotecas do Arduino IDE, instale:
 
 - `PubSubClient`, de Nick O'Leary.
 - `DHT sensor library`, da Adafruit.
 
-A biblioteca `WiFi.h` já faz parte do pacote de suporte de placas ESP32.
+A biblioteca `WiFi.h` faz parte do suporte de placas ESP32.
 
 ## Passo a passo para execução
 
-### 1. Instalar e configurar o Arduino IDE
+### 1. Instalar o Arduino IDE
 
-Instale o [Arduino IDE](https://www.arduino.cc/en/software) e configure o suporte de placas ESP32.
+Instale o [Arduino IDE](https://www.arduino.cc/en/software) e configure o suporte à placa ESP32.
 
 ### 2. Instalar as bibliotecas
 
-Instale as bibliotecas `PubSubClient` e `DHT sensor library` pelo Gerenciador de Bibliotecas.
+Instale `PubSubClient` e `DHT sensor library` pelo Gerenciador de Bibliotecas.
 
-### 3. Conectar os componentes
+### 3. Montar o circuito
 
-Monte o circuito com o ESP32, o DHT11 e o LDR, seguindo a tabela de conexões.
+Conecte o DHT11 e o LDR de acordo com a tabela de montagem.
 
-### 4. Configurar o código
+### 4. Configurar a conexão
 
-Abra o código-fonte e confira o SSID, a senha da rede Wi-Fi, o endereço do broker e a identificação do dispositivo.
+Preencha as configurações de Wi-Fi e MQTT no código. Confira se o dispositivo está cadastrado no servidor e se os tópicos esperados correspondem aos identificadores utilizados.
 
-### 5. Enviar o código para o ESP32
+### 5. Enviar o código para a placa
 
-Conecte a placa ao computador por USB, selecione a placa e a porta serial corretas e clique em **Upload**.
+Conecte o ESP32 ao computador por USB, selecione a placa e a porta serial corretas e clique em **Upload**.
 
 ### 6. Verificar o funcionamento
 
 Abra o Monitor Serial com a velocidade de `115200 baud`.
 
-O programa deve apresentar as mensagens de conexão Wi-Fi, conexão MQTT e publicação dos dados dos sensores.
+O programa deve informar o andamento da conexão Wi-Fi, da conexão MQTT e da publicação dos dados.
 
 ## Comunicação MQTT
 
-O dispositivo utiliza três tópicos para a comunicação com o servidor IoT.
+Os tópicos são construídos automaticamente com base nos valores de `API_KEY` e `DEVICE_ID`.
+
+A estrutura utilizada é:
 
 | Tópico | Finalidade |
 |---|---|
-| `/TEF/vinheria571424/attrs` | Publicação dos dados dos sensores |
-| `/TEF/vinheria571424/cmd` | Recebimento de comandos para o LED |
-| `/TEF/vinheria571424/cmdexe` | Confirmação da execução dos comandos |
+| `/<API_KEY>/<DEVICE_ID>/attrs` | Publicação dos dados dos sensores |
+| `/<API_KEY>/<DEVICE_ID>/cmd` | Recebimento de comandos para o LED |
+| `/<API_KEY>/<DEVICE_ID>/cmdexe` | Confirmação da execução dos comandos |
+
+Substitua os marcadores pelos valores configurados no código. O formato exato dos tópicos deve ser compatível com o servidor MQTT utilizado.
 
 ### Publicação dos dados
 
-A cada 5 segundos, o ESP32 realiza a leitura dos sensores e publica os dados no tópico de atributos.
-
-O formato da mensagem é:
-
-```text
-t|<temperatura>|h|<umidade>|l|<luminosidade>
-```
+A cada cinco segundos, o ESP32 lê os sensores e publica os resultados no tópico de atributos em formato JSON.
 
 Exemplo de mensagem:
 
-```text
-t|12.5|h|60.0|l|25
+```json
+{
+  "temperatura": 12.5,
+  "umidade": 60.0,
+  "luminosidade": 25
+}
 ```
 
-Os campos representam:
+Os valores são ilustrativos e representam:
 
-- `t`: temperatura em graus Celsius.
-- `h`: umidade relativa do ar em porcentagem.
-- `l`: luminosidade convertida para uma escala de 0 a 100.
+- `temperatura`: temperatura em graus Celsius.
+- `umidade`: umidade relativa do ar em porcentagem.
+- `luminosidade`: valor convertido para uma escala de 0 a 100.
 
-Os valores apresentados são ilustrativos.
-
-O LDR realiza cinco leituras para calcular uma média e reduzir oscilações nos resultados.
+O LDR realiza cinco leituras para calcular uma média e reduzir oscilações.
 
 ### Recebimento de comandos
 
-O ESP32 recebe comandos pelo tópico:
+O dispositivo recebe comandos pelo tópico:
 
 ```text
-/TEF/vinheria571424/cmd
+/<API_KEY>/<DEVICE_ID>/cmd
 ```
 
-Os comandos disponíveis são:
-
-| Payload | Ação |
+| Mensagem | Ação |
 |---|---|
 | `on` | Liga o LED |
 | `off` | Desliga o LED |
 
-Após reconhecer o comando, o dispositivo publica uma confirmação no tópico `/TEF/vinheria571424/cmdexe`.
-
-Exemplo de confirmação:
+Após reconhecer um comando, o ESP32 envia uma confirmação ao tópico:
 
 ```text
-vinheria571424@on|Ok
+/<API_KEY>/<DEVICE_ID>/cmdexe
 ```
+
+O formato da confirmação é:
+
+```text
+<DEVICE_ID>@on|Ok
+```
+
+Para o comando de desligamento, a resposta será:
+
+```text
+<DEVICE_ID>@off|Ok
+```
+
+Os comandos devem ser publicados com o payload esperado e nos tópicos correspondentes.
 
 ## Configuração do MyMQTT
 
-Para testar a comunicação:
+1. Abra o aplicativo MyMQTT ou outro cliente MQTT.
+2. Configure o endereço e a porta do mesmo broker utilizado pelo ESP32.
+3. Inscreva-se no tópico de atributos para acompanhar as leituras.
+4. Publique `on` ou `off` no tópico de comandos.
+5. Verifique o acionamento do LED e a mensagem de confirmação.
 
-1. Abra o aplicativo MyMQTT.
-2. Configure a conexão com o mesmo broker MQTT utilizado pelo ESP32.
-3. Assine o tópico `/TEF/vinheria571424/attrs` para receber os dados dos sensores.
-4. Publique `on` ou `off` no tópico `/TEF/vinheria571424/cmd`.
-5. Confira a alteração do LED e a resposta no tópico `/TEF/vinheria571424/cmdexe`.
+O ESP32 e o cliente MQTT precisam utilizar o mesmo servidor e os tópicos corretos.
 
-O ESP32 e o aplicativo precisam utilizar o mesmo broker e os tópicos corretos.
+## Limites de referência ambiental
 
-## Monitoramento das condições ambientais
+O código contém valores de referência que podem ser ajustados conforme os requisitos do projeto.
 
-O código possui limites de referência para avaliar as condições do ambiente.
+| Parâmetro | Faixa ideal | Limites de referência para alerta |
+|---|---|---|
+| Temperatura | 10 °C a 15 °C | 8 °C a 18 °C |
+| Umidade | 50% a 70% | 40% a 80% |
+| Luminosidade | Até 30% | Acima de 30% até 70% |
 
-| Parâmetro | Faixa ideal | Faixa de alerta | Condição crítica |
-|---|---|---|---|
-| Temperatura | 10 °C a 15 °C | De 8 °C a 18 °C, fora da faixa ideal | Abaixo de 8 °C ou acima de 18 °C |
-| Umidade | 50% a 70% | De 40% a 80%, fora da faixa ideal | Abaixo de 40% ou acima de 80% |
-| Luminosidade | Até 30% | Acima de 30% até 70% | Acima de 70% |
-
-O estado geral é calculado considerando os três parâmetros:
-
-- `OK`: todos os parâmetros estão dentro das respectivas faixas ideais.
-- `ALERTA`: pelo menos um parâmetro está fora da faixa ideal, mas dentro dos limites de alerta.
-- `CRITICO`: pelo menos um parâmetro ultrapassou os limites de alerta.
-
-A classificação é apresentada no Monitor Serial. No código atual, o payload enviado ao servidor contém os valores dos sensores, sem o texto correspondente ao estado geral.
+Os limites estão definidos no código para avaliação dos valores lidos. Na versão atual, a classificação calculada não é enviada ao servidor nem exibida no Monitor Serial; o payload publicado contém somente as leituras dos sensores.
 
 ## Testes e validação
 
-Para validar o funcionamento do projeto, devem ser realizados os seguintes testes:
+Para validar o projeto:
 
-1. Verificar a conexão do ESP32 à rede Wi-Fi.
-2. Confirmar a conexão com o broker MQTT.
-3. Conferir as leituras de temperatura e umidade do DHT11.
-4. Verificar a variação da luminosidade captada pelo LDR.
-5. Confirmar a publicação das mensagens no tópico de atributos.
-6. Enviar os comandos `on` e `off` pelo MyMQTT.
-7. Verificar o acionamento do LED e as mensagens de confirmação.
+1. Verifique a conexão do ESP32 ao Wi-Fi.
+2. Confirme a conexão com o broker MQTT.
+3. Confira as leituras do DHT11.
+4. Observe a variação dos valores do LDR.
+5. Verifique a publicação dos dados no tópico de atributos.
+6. Envie os comandos `on` e `off`.
+7. Confirme o acionamento do LED e a resposta no tópico de execução.
 
 ## Problemas comuns
 
 | Problema | Possível causa | Solução |
 |---|---|---|
-| ESP32 não conecta ao Wi-Fi | SSID ou senha incorretos | Conferir as configurações no código |
-| MQTT não conecta | Broker indisponível ou IP incorreto | Conferir o endereço, a porta e a disponibilidade do servidor |
-| DHT11 não apresenta leituras | Ligação incorreta ou falha do sensor | Verificar alimentação, GND e DATA |
-| Luminosidade apresenta valores invertidos | Orientação do divisor de tensão ou conversão inadequada | Conferir a montagem e ajustar a conversão do LDR |
-| Mensagens não aparecem no MyMQTT | Tópico incorreto ou broker diferente | Conferir a conexão e os tópicos utilizados |
-| LED não responde aos comandos | Payload ou tópico incorreto | Publicar `on` ou `off` no tópico de comandos |
+| Não conecta ao Wi-Fi | Nome da rede ou senha incorretos | Confira as configurações |
+| Não conecta ao MQTT | Endereço, porta ou servidor incorretos | Verifique a configuração e a disponibilidade do broker |
+| DHT11 sem leitura | Ligação incorreta ou falha do sensor | Confira alimentação, GND e DATA |
+| Luminosidade invertida | Montagem do divisor de tensão ou conversão inadequada | Confira o circuito e ajuste a leitura |
+| Mensagens não aparecem no cliente MQTT | Tópicos ou broker diferentes | Confira as configurações dos dois clientes |
+| LED não responde | Comando ou tópico incorreto | Publique exatamente `on` ou `off` no tópico de comandos |
 
 ## Segurança
 
-As credenciais de Wi-Fi estão definidas diretamente no código para fins didáticos. Antes de publicar o projeto em um repositório público, remova senhas reais e utilize uma configuração local não versionada.
+As configurações do projeto utilizam valores de exemplo para permitir que cada pessoa configure seu próprio ambiente. Não inclua senhas reais de Wi-Fi, chaves privadas ou credenciais de acesso no repositório público.
 
 ## Referências
 
-- Repositório do projeto: https://github.com/TheMathh/checkpoint-5-edgecomputing-1ESPQ
-- Arduino IDE: https://www.arduino.cc/en/software
-- PubSubClient: https://github.com/knolleary/pubsubclient
-- DHT Sensor Library: https://github.com/adafruit/DHT-sensor-library
-- Wokwi: https://wokwi.com/
-- FIWARE: https://www.fiware.org/
+- [Arduino IDE](https://www.arduino.cc/en/software)
+- [PubSubClient](https://github.com/knolleary/pubsubclient)
+- [DHT Sensor Library — Adafruit](https://github.com/adafruit/DHT-sensor-library)
+- [Wokwi](https://wokwi.com/)
+- [FIWARE](https://www.fiware.org/)
+- [Repositório do projeto](https://github.com/TheMathh/checkpoint-5-edgecomputing-1ESPQ)
